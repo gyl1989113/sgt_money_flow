@@ -5,6 +5,7 @@ from scrapy.selector import Selector
 from useragent import agent_list
 import random
 import time
+from datetime import datetime
 from _mysql import MysqlClient
 
 
@@ -71,6 +72,22 @@ class FundFlow(object):
         time.sleep(5)
 
     @staticmethod
+    def if_weekend(day_str, separator=""):
+        """
+        if a day is weekend
+        :param day_str: string of a day
+        :param separator: separator of year, month and day, default is empty
+        :return: True: is weekend; False: not weekend
+        """
+        spec = "%Y" + separator + "%m" + separator + "%d"
+        day = datetime.strptime(day_str, spec).date()
+        # Monday == 0 ... Sunday == 6
+        if day.weekday() in [5, 6]:
+            return True
+        else:
+            return False
+
+    @staticmethod
     def handle_data(text):
         """ 统一个股页面单位表示，全部转为万
         :param text: 字符串
@@ -93,7 +110,9 @@ class FundFlow(object):
         #     print('提示-完成资金流数据获取：{0}的获取'.format(self.date))
         # except Exception as e:
         #     print(e)
-        self.get_sgt_fund_flow()
+        datestr = time.strftime("%Y%m%d", time.localtime())
+        if not self.if_weekend(datestr):
+            self.get_sgt_fund_flow()
         # where_condition = f'WHERE stock_name = "同花顺" and trade_date="20200610"'
         # print(self.get_data_from_mysql(where_condition=where_condition))
 
